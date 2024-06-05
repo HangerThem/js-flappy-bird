@@ -92,7 +92,7 @@ class Bird {
 
   wave() {
     this.curve = Math.sin(angle) * 10;
-    if (frame % 100 === 0) {
+    if (frame % 10 === 0) {
       this.animationFrame++;
       if (this.animationFrame > 2) this.animationFrame = 0;
     }
@@ -204,11 +204,12 @@ const background = {
   y: 0,
   w: 144,
   h: 256,
+  day: true,
 
   draw: function () {
     ctx.drawImage(
       sprite,
-      this.sX,
+      this.sX + (this.day ? 0 : this.w + 2),
       this.sY,
       this.w,
       this.h,
@@ -244,7 +245,7 @@ const foreground = {
       this.x + this.dx,
       ctx.canvas.height - this.h,
       ctx.canvas.width,
-      this.h
+      this.h * 2
     );
     ctx.drawImage(
       sprite,
@@ -255,7 +256,7 @@ const foreground = {
       this.x + this.dx + this.w / 2,
       ctx.canvas.height - this.h,
       ctx.canvas.width,
-      this.h
+      this.h * 2
     );
   },
 };
@@ -408,7 +409,7 @@ const gameOverCard = {
       this.w * 2,
       this.h * 2
     );
-    medals.draw(medal, x + 27, y + 42);
+    medal >= 0 && medals.draw(medal, x + 27, y + 42);
     if (score > bestScore) {
       console.log("new best score", score);
       bestScore = score;
@@ -553,24 +554,67 @@ const pauseButton = {
   sY: 291,
   w: 13,
   h: 14,
-  x: 0,
-  y: 0,
+  x: 10,
+  y: 10,
   state: "play",
-  click: false,
 
   draw: function () {
-    let x = 10;
-    let y = 10 + (this.click ? 1 : 0);
     ctx.drawImage(
       sprite,
       this.sX + (this.state === "play" ? 0 : this.w + 2),
       this.sY,
       this.w,
-      this.h - (this.click ? 1 : 0),
-      x,
-      y,
+      this.h,
+      this.x,
+      this.y,
       this.w * 2,
-      (this.h - (this.click ? 1 : 0)) * 2
+      this.h * 2
+    );
+  },
+};
+
+const menuButton = {
+  sX: 462,
+  sY: 26,
+  w: 40,
+  h: 14,
+  x: gameOverCard.w * 2 - 65,
+  y: canvas.height / 2 + gameOverCard.h + 10,
+
+  draw: function () {
+    ctx.drawImage(
+      sprite,
+      this.sX,
+      this.sY,
+      this.w,
+      this.h,
+      this.x,
+      this.y,
+      this.w * 2,
+      this.h * 2
+    );
+  },
+};
+
+const okButton = {
+  sX: 462,
+  sY: 42,
+  w: 40,
+  h: 14,
+  x: canvas.width / 2 - gameOverCard.w + 15,
+  y: canvas.height / 2 + gameOverCard.h + 10,
+
+  draw: function () {
+    ctx.drawImage(
+      sprite,
+      this.sX,
+      this.sY,
+      this.w,
+      this.h,
+      this.x,
+      this.y,
+      this.w * 2,
+      this.h * 2
     );
   },
 };
@@ -589,8 +633,19 @@ function drawScore() {
 }
 
 function gameOver() {
-  const medal = score < 10 ? 0 : score < 20 ? 1 : score < 30 ? 2 : 3;
+  let medal = -1;
+  if (score >= 10 && score < 20) {
+    medal = 0;
+  } else if (score >= 20 && score < 30) {
+    medal = 1;
+  } else if (score >= 30 && score < 40) {
+    medal = 2;
+  } else if (score >= 40) {
+    medal = 3;
+  }
   gameOverCard.draw(medal);
+  menuButton.draw();
+  okButton.draw();
 }
 
 function gameLoop() {
@@ -600,6 +655,8 @@ function gameLoop() {
 
   if (getReadyScreen) {
     drawScore();
+    angle += 0.1;
+    frame++;
     bird.wave();
     foreground.update();
     getReady.draw();
@@ -621,8 +678,9 @@ function gameLoop() {
     return;
   }
 
-  angle += 0.1;
   frame++;
+  angle += 0.1;
+
   bird.update();
   foreground.update();
   pauseButton.draw();
@@ -714,7 +772,6 @@ canvas.addEventListener("click", (e) => {
     } else if (gameState === "pause") {
       gameState = "play";
       pauseButton.state = "play";
-      gameLoop();
     }
     return;
   }
