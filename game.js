@@ -2,7 +2,19 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const sprite = new Image();
-sprite.src = "sprite.png";
+sprite.src = "./sprites/sprite.png";
+
+sprite.onload = () => {
+  startScreen();
+};
+
+const sounds = {
+  hit: new Audio("./sounds/sfx_hit.wav"),
+  point: new Audio("./sounds/sfx_point.wav"),
+  swooshing: new Audio("./sounds/sfx_swooshing.wav"),
+  die: new Audio("./sounds/sfx_die.wav"),
+  wing: new Audio("./sounds/sfx_wing.wav"),
+};
 
 canvas.width = 288;
 canvas.height = 512;
@@ -136,6 +148,7 @@ class Bird {
 
   flap() {
     this.vy -= 25;
+    sounds.wing.play();
   }
 
   reset() {
@@ -192,6 +205,7 @@ class Pipe {
     this.x -= 2;
     if (!this.counted && this.x < bird.x) {
       score++;
+      sounds.point.play();
       this.counted = true;
     }
   }
@@ -700,6 +714,7 @@ function gameLoop() {
     pipe.update(bird);
     if (bird.checkCollision(pipe)) {
       cancelAnimationFrame(gameLoop);
+      sounds.hit.play();
       gameState = "gameover";
       gameOver();
     }
@@ -708,6 +723,7 @@ function gameLoop() {
   if (bird.checkBottomCollision()) {
     cancelAnimationFrame(gameLoop);
     gameState = "gameover";
+    sounds.hit.play();
     gameOver();
   } else {
     requestAnimationFrame(gameLoop);
@@ -795,5 +811,3 @@ canvas.addEventListener("click", (e) => {
       break;
   }
 });
-
-startScreen();
